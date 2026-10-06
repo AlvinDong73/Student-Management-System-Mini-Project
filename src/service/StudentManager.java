@@ -190,19 +190,15 @@ public class StudentManager implements Manageable {
             }
         }
 
-        boolean found = false;
+        Course searchedCourse = courses.get(course);
+        ArrayList<Student> courseStudents = searchedCourse.getStudents();
 
-        for (Student student : students) {
-
-            if (student.getCourse().getCrn() == course) {
-
-                student.displayDetails();
-                found = true;
-            }
-        }
-
-        if (!found) {
+        if (courseStudents.isEmpty()) {
             System.out.println("No student found for this course.");
+        } else {
+            for (Student student : courseStudents) {
+                student.displayDetails();
+            }
         }
     }
 
