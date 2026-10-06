@@ -98,15 +98,31 @@ public class Main {
                 case 11:
                     manager.courseStatistics();
                     break;
-
+                
                 case 12:
+                    manager.addCourse();
+                    break;
+                
+                case 13:
+                    manager.deleteCourse();
+                    break;
+
+                case 14:
+                    manager.viewCourses();
+                    break;
+                
+                case 15:
+                    manager.updateCourse();
+                    break;
+
+                case 16:
                     manager.saveToFile();
                     System.out.println(
                             "Data saved successfully."
                     );
                     break;
 
-                case 13:
+                case 17:
 
                     manager.saveToFile();
 
@@ -128,10 +144,9 @@ public class Main {
                     );
 
                     break;
-
                 default:
                     System.out.println(
-                            "Invalid choice! Please select 1-13."
+                            "Invalid choice! Please select 1-17."
                     );
             }
         }
@@ -156,8 +171,12 @@ public class Main {
         System.out.println("9.  Display Top Performing Students");
         System.out.println("10. Sort Students");
         System.out.println("11. Course-wise Student Count");
-        System.out.println("12. Save Data");
-        System.out.println("13. Exit");
+        System.out.println("12. Add Course");
+        System.out.println("13. Remove Course");
+        System.out.println("14. View All Courses");
+        System.out.println("15. Update Course");
+        System.out.println("16. Save Data");
+        System.out.println("17. Exit");
         System.out.println("==============================================");
     }
 }

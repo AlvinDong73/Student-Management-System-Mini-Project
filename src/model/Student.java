@@ -4,10 +4,10 @@ package model;
 public class Student extends Person {
 
     private String studentId;
-    private String course;
+    private Course course; // can be null
     private double marks;
 
-    public Student(String studentId, String name, String course, int age, double marks) {
+    public Student(String studentId, String name, Course course, int age, double marks) {
         super(name, age);
         this.studentId = studentId;
         this.course = course;
@@ -22,11 +22,11 @@ public class Student extends Person {
         this.studentId = studentId;
     }
 
-    public String getCourse() {
+    public Course getCourse() {
         return course;
     }
 
-    public void setCourse(String course) {
+    public void setCourse(Course course) {
         this.course = course;
     }
 
@@ -63,7 +63,7 @@ public class Student extends Person {
         System.out.println("-----------------------------------------------");
         System.out.println("Student ID : " + studentId);
         System.out.println("Name       : " + getName());
-        System.out.println("Course     : " + course);
+        System.out.println("Course     : " + course.getFullCourseNumber());
         System.out.println("Age        : " + getAge());
         System.out.println("Marks      : " + marks);
         System.out.println("Grade      : " + getGrade());
@@ -73,6 +73,6 @@ public class Student extends Person {
 
     @Override
     public String toString() {
-        return studentId + "|" + getName() + "|" + course + "|" + getAge() + "|" + marks;
+        return studentId + "|" + getName() + "|" + (course != null ? course.getCrn() : -1) + "|" + getAge() + "|" + marks;
     }
 }

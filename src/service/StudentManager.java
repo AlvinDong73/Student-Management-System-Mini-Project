@@ -4,6 +4,7 @@ import exception.DuplicateStudentException;
 import exception.StudentNotFoundException;
 import interfacee.Manageable;
 import model.Student;
+import model.Course;
 
 import java.io.*;
 import java.util.*;
@@ -16,11 +17,12 @@ public class StudentManager implements Manageable {
     private final HashMap<String, Student> studentMap = new HashMap<>();
 
     // Stores unique courses
-    private final HashSet<String> courses = new HashSet<>();
+    private final HashMap<Integer, Course> courses = new HashMap<>();
 
     private final Scanner sc;
 
-    private final String FILE_NAME = "data/students.txt";
+    private final String STUDENTS_FILE_NAME = "data/students.txt";
+    private final String COURSES_FILE_NAME = "data/courses.txt";
 
     public StudentManager(Scanner sc) {
         this.sc = sc;
@@ -37,6 +39,11 @@ public class StudentManager implements Manageable {
         String id = readNonEmptyString("Enter Student ID: ");
 
         try {
+            if (courses.isEmpty()) {
+                System.out.println("No available courses to assign a new student to.");
+                return;
+            }
+
             if (studentMap.containsKey(id)) {
                 throw new DuplicateStudentException(
                         "Student ID already exists!"
@@ -45,7 +52,16 @@ public class StudentManager implements Manageable {
 
             String name = readNonEmptyString("Enter Name: ");
 
-            String course = readNonEmptyString("Enter Course: ");
+            int course = -1;
+            while (true) {
+                for (Course c : courses.values()) {
+                    System.out.println(c.getBriefDetails());
+                }
+                course = readInt("Enter Course CRN: ");
+                if (courses.containsKey(course)) {
+                    break;
+                }
+            }
 
             int age = readInt("Enter Age: ");
 
@@ -64,14 +80,13 @@ public class StudentManager implements Manageable {
             Student student = new Student(
                     id,
                     name,
-                    course,
+                    courses.get(course),
                     age,
                     marks
             );
 
             students.add(student);
             studentMap.put(id, student);
-            courses.add(course);
 
             System.out.println("\nStudent added successfully!");
             System.out.println("Grade  : " + student.getGrade());
@@ -156,15 +171,29 @@ public class StudentManager implements Manageable {
 
     public void searchByCourse() {
 
+        if (courses.isEmpty()) {
+            System.out.println("No available courses to search by.");
+            return;
+        }
+
         System.out.println("\n========== SEARCH BY COURSE ==========");
 
-        String course = readNonEmptyString("Enter Course: ");
+        int course = -1;
+        while (true) {
+            for (Course c : courses.values()) {
+                System.out.println(c.getBriefDetails());
+            }
+            course = readInt("Enter Course CRN to search by: ");
+            if (courses.containsKey(course)) {
+                break;
+            }
+        }
 
         boolean found = false;
 
         for (Student student : students) {
 
-            if (student.getCourse().equalsIgnoreCase(course)) {
+            if (student.getCourse().getCrn() == course) {
 
                 student.displayDetails();
                 found = true;
@@ -197,7 +226,16 @@ public class StudentManager implements Manageable {
 
         String name = readNonEmptyString("Enter New Name: ");
 
-        String course = readNonEmptyString("Enter New Course: ");
+        int course = -1;
+        while (true) {
+            for (Course c : courses.values()) {
+                System.out.println(c.getBriefDetails());
+            }
+            course = readInt("Enter Course CRN to assign the student to: ");
+            if (courses.containsKey(course)) {
+                break;
+            }
+        }
 
         int age = readInt("Enter New Age: ");
 
@@ -214,11 +252,9 @@ public class StudentManager implements Manageable {
         }
 
         student.setName(name);
-        student.setCourse(course);
+        student.setCourse(courses.get(course));
         student.setAge(age);
         student.setMarks(marks);
-
-        courses.add(course);
 
         System.out.println("\nStudent updated successfully!");
 
@@ -419,11 +455,11 @@ public class StudentManager implements Manageable {
             return;
         }
 
-        HashMap<String, Integer> courseCount = new HashMap<>();
+        HashMap<Course, Integer> courseCount = new HashMap<>();
 
         for (Student student : students) {
 
-            String course = student.getCourse();
+            Course course = student.getCourse();
 
             courseCount.put(
                     course,
@@ -431,11 +467,11 @@ public class StudentManager implements Manageable {
             );
         }
 
-        for (Map.Entry<String, Integer> entry :
+        for (Map.Entry<Course, Integer> entry :
                 courseCount.entrySet()) {
 
             System.out.println(
-                    entry.getKey()
+                    entry.getKey().getBriefDetails()
                             + " : "
                             + entry.getValue()
                             + " students"
@@ -455,17 +491,28 @@ public class StudentManager implements Manageable {
                 directory.mkdirs();
             }
 
-            BufferedWriter writer =
+            BufferedWriter studentsWriter =
                     new BufferedWriter(
-                            new FileWriter(FILE_NAME)
+                            new FileWriter(STUDENTS_FILE_NAME)
+                    );
+
+            BufferedWriter coursesWriter =
+                    new BufferedWriter(
+                            new FileWriter(COURSES_FILE_NAME)
                     );
 
             for (Student student : students) {
-                writer.write(student.toString());
-                writer.newLine();
+                studentsWriter.write(student.toString());
+                studentsWriter.newLine();
             }
 
-            writer.close();
+            for (Course course : courses.values()) {
+                coursesWriter.write(course.toString());
+                coursesWriter.newLine();
+            }
+
+            studentsWriter.close();
+            coursesWriter.close();
 
         } catch (IOException e) {
 
@@ -480,22 +527,43 @@ public class StudentManager implements Manageable {
 
     private void loadFromFile() {
 
-        File file = new File(FILE_NAME);
+        File studentsFile = new File(STUDENTS_FILE_NAME);
+        File coursesFile = new File(COURSES_FILE_NAME);
 
-        if (!file.exists()) {
+        if (!studentsFile.exists() || !coursesFile.exists()) {
             return;
         }
 
         try {
 
-            BufferedReader reader =
+            BufferedReader studentsReader =
                     new BufferedReader(
-                            new FileReader(file)
+                            new FileReader(studentsFile)
+                    );
+            
+            BufferedReader coursesReader =
+                    new BufferedReader(
+                            new FileReader(coursesFile)
                     );
 
             String line;
 
-            while ((line = reader.readLine()) != null) {
+            System.out.println("reached");
+
+            while ((line = coursesReader.readLine()) != null) {
+
+                String[] data = line.split("\\|");
+
+                System.out.println(data.length);
+
+                if (data.length == 5) {
+                    Course course = new Course(data);
+
+                    courses.put(course.getCrn(), course);
+                }
+            }
+
+            while ((line = studentsReader.readLine()) != null) {
 
                 String[] data = line.split("\\|");
 
@@ -503,7 +571,7 @@ public class StudentManager implements Manageable {
 
                     String id = data[0];
                     String name = data[1];
-                    String course = data[2];
+                    int course = Integer.parseInt(data[2]);
                     int age = Integer.parseInt(data[3]);
                     double marks = Double.parseDouble(data[4]);
 
@@ -511,18 +579,19 @@ public class StudentManager implements Manageable {
                             new Student(
                                     id,
                                     name,
-                                    course,
+                                    // If the student was saved with no course
+                                    (course != -1 ? courses.get(course) : null),
                                     age,
                                     marks
                             );
 
                     students.add(student);
                     studentMap.put(id, student);
-                    courses.add(course);
                 }
             }
 
-            reader.close();
+            studentsReader.close();
+            coursesReader.close();
 
             System.out.println(
                     students.size()
@@ -544,7 +613,10 @@ public class StudentManager implements Manageable {
         courses.clear();
 
         for (Student student : students) {
-            courses.add(student.getCourse());
+            Course course = student.getCourse();
+            if (course != null) {
+                courses.put(course.getCrn(), course);
+            }
         }
     }
 
@@ -608,5 +680,119 @@ public class StudentManager implements Manageable {
                 );
             }
         }
+    }
+
+    public void addCourse() {
+        System.out.println("\n========== ADD COURSE ==========");
+
+        int crn = readInt("Enter CRN: ");
+
+        if (courses.containsKey(crn)) {
+            System.out.println("A course with this CRN already exists.");
+            return;
+        }
+
+        if (crn <= 0) {
+            System.out.println("A course's CRN must be positive.");
+            return;
+        }
+
+        String subject = readNonEmptyString("Enter Course Subject: ");
+
+        String name = readNonEmptyString("Enter Course Name: ");
+
+        int num = readInt("Enter Course Number: ");
+
+        if (num <= 0) {
+            System.out.println("A course's number must be positive.");
+            return;
+        }
+
+        String professor = readNonEmptyString("Enter Professor Name: ");
+        
+        Course course = new Course(subject, name, crn, num, professor);
+        
+        courses.put(crn, course);
+
+        System.out.println("\nCourse added successfully!");
+
+        saveToFile();
+    }
+
+    public void viewCourses() {
+
+        System.out.println("\n========== ALL COURSES ==========");
+
+        if (courses.isEmpty()) {
+            System.out.println("No courses exist yet.");
+            return;
+        }
+
+        for (Course course : courses.values()) {
+            course.displayFullDetails();
+        }
+    }
+
+    public void deleteCourse() {
+        System.out.println("\n========== DELETE COURSE ==========");
+
+        int crn = readInt("Enter Course CRN: ");
+
+        Course course = courses.get(crn);
+
+        if (course == null) {
+            System.out.println("Course not found.");
+            return;
+        }
+
+        course.displayFullDetails();
+
+        System.out.print("Are you sure you want to delete? (Y/N): ");
+
+        String choice = sc.nextLine();
+
+        if (choice.equalsIgnoreCase("Y")) {
+
+            for (Student student : students) {
+                if (student.getCourse().equals(course)) {
+                    student.setCourse(null);
+                }
+            }
+
+            courses.remove(crn);
+
+            System.out.println("Course deleted successfully!");
+
+            saveToFile();
+
+        } else {
+            System.out.println("Delete operation cancelled.");
+        }
+    }
+
+    public void updateCourse() {
+        System.out.println("\n========== UPDATE STUDENT ==========");
+
+        int crn = readInt("Enter Course CRN: ");
+
+        Course course = courses.get(crn);
+
+        if (course == null) {
+            System.out.println("Course not found.");
+            return;
+        }
+
+        System.out.println("\nCurrent Details:");
+        course.displayFullDetails();
+
+        String prof = readNonEmptyString("Enter New Professor: ");
+        String name = readNonEmptyString("Enter New Course Name:");
+
+        course.setProfessor(prof);
+        course.setName(name);
+
+        System.out.println("\nCourse updated successfully!");
+
+        saveToFile();
     }
 }
