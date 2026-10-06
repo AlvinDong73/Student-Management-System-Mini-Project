@@ -666,6 +666,8 @@ public class StudentManager implements Manageable {
         }
     }
 
+    // ====== COURSE MANIPULATION ========
+
     public void addCourse() {
         System.out.println("\n========== ADD COURSE ==========");
 

@@ -1,3 +1,12 @@
+/**
+ * AI DISCLAIMER
+ * No AI was used to generate any extra code or documentation
+ * in this repository that was not present in the original
+ * version of the codebase.
+ * 
+ * @author Alvin Dong
+ */
+
 import service.StudentManager;
 import thread.AutoSaveTask;
 
