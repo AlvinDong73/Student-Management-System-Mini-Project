@@ -107,6 +107,6 @@ public class Course {
         finalString += "|" + crn;
         finalString += "|" + courseNumber;
         finalString += "|" + professor;
-        return finalString.substring(0, finalString.length() - 1);
+        return finalString;
     }
 }
