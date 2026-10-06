@@ -34,25 +34,26 @@ public class StudentManager implements Manageable {
     @Override
     public void addStudent() {
 
+        if (courses.isEmpty()) {
+            System.out.println("No available courses to assign a new student to.");
+            return;
+        }
+
         System.out.println("\n========== ADD STUDENT ==========");
 
         String id = readNonEmptyString("Enter Student ID: ");
 
         try {
-            if (courses.isEmpty()) {
-                System.out.println("No available courses to assign a new student to.");
-                return;
-            }
 
             if (studentMap.containsKey(id)) {
                 throw new DuplicateStudentException(
-                        "Student ID already exists!"
-                );
+                        "Student ID already exists!");
             }
 
             String name = readNonEmptyString("Enter Name: ");
 
             int course = -1;
+            System.out.println("\nCurrent Courses:");
             while (true) {
                 for (Course c : courses.values()) {
                     System.out.println(c.getBriefDetails());
@@ -82,11 +83,12 @@ public class StudentManager implements Manageable {
                     name,
                     courses.get(course),
                     age,
-                    marks
-            );
+                    marks);
 
             students.add(student);
             studentMap.put(id, student);
+
+            courses.get(course).addStudent(student);
 
             System.out.println("\nStudent added successfully!");
             System.out.println("Grade  : " + student.getGrade());
@@ -131,8 +133,7 @@ public class StudentManager implements Manageable {
 
             if (student == null) {
                 throw new StudentNotFoundException(
-                        "Student with ID " + id + " not found."
-                );
+                        "Student with ID " + id + " not found.");
             }
 
             student.displayDetails();
@@ -210,6 +211,11 @@ public class StudentManager implements Manageable {
     @Override
     public void updateStudent() {
 
+        if (courses.isEmpty()) {
+            System.out.println("No available courses to assign a student to.");
+            return;
+        }
+
         System.out.println("\n========== UPDATE STUDENT ==========");
 
         String id = readNonEmptyString("Enter Student ID: ");
@@ -252,6 +258,11 @@ public class StudentManager implements Manageable {
         }
 
         student.setName(name);
+        Course oldCourse = student.getCourse();
+        if (oldCourse != null) {
+            oldCourse.removeStudent(student);
+        }
+        courses.get(course).addStudent(student);
         student.setCourse(courses.get(course));
         student.setAge(age);
         student.setMarks(marks);
@@ -364,8 +375,7 @@ public class StudentManager implements Manageable {
 
         sorted.sort(
                 Comparator.comparingDouble(Student::getMarks)
-                        .reversed()
-        );
+                        .reversed());
 
         int count = Math.min(5, sorted.size());
 
@@ -381,8 +391,7 @@ public class StudentManager implements Manageable {
                             + " | Marks: "
                             + student.getMarks()
                             + " | Grade: "
-                            + student.getGrade()
-            );
+                            + student.getGrade());
         }
     }
 
@@ -409,29 +418,24 @@ public class StudentManager implements Manageable {
             case 1:
                 students.sort(
                         Comparator.comparingDouble(Student::getMarks)
-                                .reversed()
-                );
+                                .reversed());
                 break;
 
             case 2:
                 students.sort(
-                        Comparator.comparingDouble(Student::getMarks)
-                );
+                        Comparator.comparingDouble(Student::getMarks));
                 break;
 
             case 3:
                 students.sort(
                         Comparator.comparing(
                                 Student::getName,
-                                String.CASE_INSENSITIVE_ORDER
-                        )
-                );
+                                String.CASE_INSENSITIVE_ORDER));
                 break;
 
             case 4:
                 students.sort(
-                        Comparator.comparing(Student::getStudentId)
-                );
+                        Comparator.comparing(Student::getStudentId));
                 break;
 
             default:
@@ -463,19 +467,16 @@ public class StudentManager implements Manageable {
 
             courseCount.put(
                     course,
-                    courseCount.getOrDefault(course, 0) + 1
-            );
+                    courseCount.getOrDefault(course, 0) + 1);
         }
 
-        for (Map.Entry<Course, Integer> entry :
-                courseCount.entrySet()) {
+        for (Map.Entry<Course, Integer> entry : courseCount.entrySet()) {
 
             System.out.println(
                     entry.getKey().getBriefDetails()
                             + " : "
                             + entry.getValue()
-                            + " students"
-            );
+                            + " students");
         }
     }
 
@@ -491,15 +492,11 @@ public class StudentManager implements Manageable {
                 directory.mkdirs();
             }
 
-            BufferedWriter studentsWriter =
-                    new BufferedWriter(
-                            new FileWriter(STUDENTS_FILE_NAME)
-                    );
+            BufferedWriter studentsWriter = new BufferedWriter(
+                    new FileWriter(STUDENTS_FILE_NAME));
 
-            BufferedWriter coursesWriter =
-                    new BufferedWriter(
-                            new FileWriter(COURSES_FILE_NAME)
-                    );
+            BufferedWriter coursesWriter = new BufferedWriter(
+                    new FileWriter(COURSES_FILE_NAME));
 
             for (Student student : students) {
                 studentsWriter.write(student.toString());
@@ -518,8 +515,7 @@ public class StudentManager implements Manageable {
 
             System.out.println(
                     "Error while saving data: "
-                            + e.getMessage()
-            );
+                            + e.getMessage());
         }
     }
 
@@ -536,19 +532,13 @@ public class StudentManager implements Manageable {
 
         try {
 
-            BufferedReader studentsReader =
-                    new BufferedReader(
-                            new FileReader(studentsFile)
-                    );
-            
-            BufferedReader coursesReader =
-                    new BufferedReader(
-                            new FileReader(coursesFile)
-                    );
+            BufferedReader studentsReader = new BufferedReader(
+                    new FileReader(studentsFile));
+
+            BufferedReader coursesReader = new BufferedReader(
+                    new FileReader(coursesFile));
 
             String line;
-
-            System.out.println("reached");
 
             while ((line = coursesReader.readLine()) != null) {
 
@@ -561,6 +551,8 @@ public class StudentManager implements Manageable {
 
                     courses.put(course.getCrn(), course);
                 }
+
+                System.out.println("Course added");
             }
 
             while ((line = studentsReader.readLine()) != null) {
@@ -575,18 +567,21 @@ public class StudentManager implements Manageable {
                     int age = Integer.parseInt(data[3]);
                     double marks = Double.parseDouble(data[4]);
 
-                    Student student =
-                            new Student(
-                                    id,
-                                    name,
-                                    // If the student was saved with no course
-                                    (course != -1 ? courses.get(course) : null),
-                                    age,
-                                    marks
-                            );
+                    Student student = new Student(
+                            id,
+                            name,
+                            // If the student was saved with no course
+                            (course != -1 ? courses.get(course) : null),
+                            age,
+                            marks);
 
                     students.add(student);
                     studentMap.put(id, student);
+
+                    Course currentCourse = student.getCourse();
+                    if (currentCourse != null) {
+                        currentCourse.addStudent(student);
+                    }
                 }
             }
 
@@ -595,14 +590,12 @@ public class StudentManager implements Manageable {
 
             System.out.println(
                     students.size()
-                            + " student records loaded."
-            );
+                            + " student records loaded.");
 
         } catch (IOException | NumberFormatException e) {
 
             System.out.println(
-                    "Error while loading data."
-            );
+                    "Error while loading data.");
         }
     }
 
@@ -635,8 +628,7 @@ public class StudentManager implements Manageable {
             }
 
             System.out.println(
-                    "Input cannot be empty. Try again."
-            );
+                    "Input cannot be empty. Try again.");
         }
     }
 
@@ -649,14 +641,12 @@ public class StudentManager implements Manageable {
                 System.out.print(message);
 
                 return Integer.parseInt(
-                        sc.nextLine().trim()
-                );
+                        sc.nextLine().trim());
 
             } catch (NumberFormatException e) {
 
                 System.out.println(
-                        "Please enter a valid number."
-                );
+                        "Please enter a valid number.");
             }
         }
     }
@@ -670,14 +660,12 @@ public class StudentManager implements Manageable {
                 System.out.print(message);
 
                 return Double.parseDouble(
-                        sc.nextLine().trim()
-                );
+                        sc.nextLine().trim());
 
             } catch (NumberFormatException e) {
 
                 System.out.println(
-                        "Please enter a valid number."
-                );
+                        "Please enter a valid number.");
             }
         }
     }
@@ -709,9 +697,9 @@ public class StudentManager implements Manageable {
         }
 
         String professor = readNonEmptyString("Enter Professor Name: ");
-        
+
         Course course = new Course(subject, name, crn, num, professor);
-        
+
         courses.put(crn, course);
 
         System.out.println("\nCourse added successfully!");

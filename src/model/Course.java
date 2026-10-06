@@ -106,10 +106,7 @@ public class Course {
         finalString += "|" + name;
         finalString += "|" + crn;
         finalString += "|" + courseNumber;
-        finalString += "|" + professor + "|";
-        for (Student student : students) {
-            finalString += student.getStudentId() + ",";
-        }
+        finalString += "|" + professor;
         return finalString.substring(0, finalString.length() - 1);
     }
 }

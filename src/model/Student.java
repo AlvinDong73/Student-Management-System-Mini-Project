@@ -63,7 +63,7 @@ public class Student extends Person {
         System.out.println("-----------------------------------------------");
         System.out.println("Student ID : " + studentId);
         System.out.println("Name       : " + getName());
-        System.out.println("Course     : " + course.getFullCourseNumber());
+        System.out.println("Course     : " + (course != null ? course.getFullCourseNumber() : "(none)"));
         System.out.println("Age        : " + getAge());
         System.out.println("Marks      : " + marks);
         System.out.println("Grade      : " + getGrade());
